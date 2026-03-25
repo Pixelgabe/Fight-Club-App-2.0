@@ -101,6 +101,14 @@
             background: var(--card-bg);
             border: 1px solid var(--text-muted);
             box-shadow: none;
+            min-width: 80px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .upload-btn:hover {
@@ -191,6 +199,7 @@
             white-space: nowrap;
             text-transform: uppercase;
             letter-spacing: 4px;
+            text-align: center;
         }
 
         .match-node {
@@ -198,14 +207,16 @@
             border: 1px solid var(--card-border);
             border-radius: 16px;
             padding: 15px;
-            width: 400px;
+            width: 800px; /* Wider for side-by-side */
+            max-width: 90vw;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             display: flex;
-            flex-direction: column;
+            flex-direction: row; /* Layout side-by-side */
             gap: 15px;
             position: relative;
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
+            align-items: center;
         }
 
         .match-node.active-match {
@@ -223,6 +234,7 @@
         .combatant {
             background: rgba(0, 0, 0, 0.4);
             border-radius: 12px;
+            flex: 1; /* Take up half the width */
             display: flex;
             flex-direction: column;
             align-items: stretch;
@@ -233,6 +245,7 @@
             transition: all 0.3s;
             border: 2px solid transparent;
             overflow: hidden;
+            width: 50%;
         }
 
         .active-match .combatant {
@@ -273,15 +286,15 @@
         .combatant.empty {
             justify-content: center;
             align-items: center;
-            height: 150px;
+            height: 400px;
             color: var(--text-muted);
             font-style: italic;
         }
 
         .combatant-img {
             width: 100%;
-            height: 280px;
-            object-fit: contain;
+            height: 400px; /* Much taller image */
+            object-fit: contain; /* Don't cut off */
             border-radius: 8px;
             background: #000;
         }
@@ -294,7 +307,7 @@
         }
 
         .combatant-name {
-            font-size: 1.1rem;
+            font-size: 1.3rem;
             font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
@@ -325,20 +338,31 @@
             border-color: var(--accent);
             box-shadow: 0 0 20px var(--accent-glow);
         }
-
-        .ui-controls {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
+        
+        .champion-node {
+            background: var(--card-bg);
+            border: 5px solid #ffd700;
+            border-radius: 20px;
+            padding: 20px;
+            width: 500px;
+            box-shadow: 0 10px 50px rgba(255, 215, 0, 0.4), inset 0 0 30px rgba(255, 215, 0, 0.1);
             display: flex;
+            flex-direction: column;
             gap: 15px;
-            z-index: 50;
-            background: rgba(15, 17, 21, 0.8);
-            padding: 10px 20px;
-            border-radius: 50px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 20;
+            align-items: center;
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .champion-node .combatant-img {
+            height: 500px;
+            border: 2px solid rgba(255,215,0,0.5);
         }
 
         .music-controls {
@@ -389,6 +413,21 @@
             transform: scale(1.05);
         }
 
+        .ui-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 50;
+            background: rgba(15, 17, 21, 0.8);
+            padding: 10px 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
         .ui-btn {
             background: rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -401,6 +440,9 @@
             transition: all 0.2s;
             backdrop-filter: blur(10px);
             font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .ui-btn:hover {
@@ -415,6 +457,29 @@
         .ui-btn.primary:hover {
             background: var(--accent-hover);
             box-shadow: 0 0 15px var(--accent-glow);
+        }
+        
+        .ui-btn.gold {
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #000;
+            font-weight: 800;
+            border: none;
+            box-shadow: 0 0 15px rgba(255,215,0,0.4);
+        }
+        .ui-btn.gold:hover {
+            box-shadow: 0 0 30px rgba(255,215,0,0.6);
+            transform: translateY(-2px);
+        }
+        
+        .ui-btn.icon-only {
+            padding: 10px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
         }
 
         #champion-overlay {
@@ -524,8 +589,8 @@
                 SELECT COMBATANTS
                 <input type="file" id="image-upload" multiple accept="image/*" />
             </div>
-            <div class="upload-btn audio-btn">
-                SELECT MUSIC FOLDER
+            <div class="upload-btn audio-btn" title="Select Music Directory">
+                <span style="font-size: 2rem;">🎵</span>
                 <input type="file" id="audio-upload" webkitdirectory directory multiple />
             </div>
         </div>
@@ -533,8 +598,10 @@
 
     <div id="viewport" class="hidden">
         <div class="music-controls">
-            <button class="ui-btn" id="btn-toggle-music" style="display: none;">🔊 Mute</button>
-            <button class="ui-btn" id="btn-next-music" style="display: none;">⏭ Next</button>
+            <button class="ui-btn icon-only" id="btn-play-music" style="display: none;" title="Play">▶</button>
+            <button class="ui-btn icon-only" id="btn-pause-music" style="display: none;" title="Pause">⏸</button>
+            <button class="ui-btn icon-only" id="btn-next-music" style="display: none;" title="Next">⏭</button>
+            <button class="ui-btn gold icon-only" id="btn-play-final" style="display: none;" title="Final Theme">🏆</button>
         </div>
 
         <div class="pan-controls">
@@ -578,6 +645,9 @@
         let playlist = [];
         let currentTrackIdx = 0;
         let audioPlayer = new Audio();
+        
+        // Final Theme Setup
+        let finalThemeAudio = new Audio('Fight Club Playlist/FINAL_Gonna Fly Now .mp3');
 
         // DOM Elements
         const setupScreen = document.getElementById('setup-screen');
@@ -591,8 +661,10 @@
 
         const btnZoomOut = document.getElementById('btn-zoom-out');
         const btnFocusActive = document.getElementById('btn-focus-active');
-        const btnToggleMusic = document.getElementById('btn-toggle-music');
+        const btnPlayMusic = document.getElementById('btn-play-music');
+        const btnPauseMusic = document.getElementById('btn-pause-music');
         const btnNextMusic = document.getElementById('btn-next-music');
+        const btnPlayFinal = document.getElementById('btn-play-final');
 
         const championOverlay = document.getElementById('champion-overlay');
         const champImg = document.getElementById('champ-img');
@@ -609,39 +681,60 @@
             const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
             if (files.length > 0) {
                 playlist = files.map(f => URL.createObjectURL(f));
-                btnToggleMusic.style.display = 'block';
-                btnNextMusic.style.display = 'block';
-                btnToggleMusic.textContent = '🔊 Mute';
+                btnPauseMusic.style.display = 'flex';
+                btnNextMusic.style.display = 'flex';
+                btnPlayFinal.style.display = 'flex';
 
                 // Play indicator, but won't start until user interacts if blocked by browser
                 // We'll play it as soon as they select combatants.
                 audioInput.parentElement.style.borderColor = "var(--win-color)";
+                audioInput.parentElement.style.background = "rgba(46, 235, 159, 0.2)";
             }
         });
 
         function playTrack(idx) {
             if (playlist.length === 0) return;
             currentTrackIdx = idx % playlist.length;
+            finalThemeAudio.pause();
             audioPlayer.src = playlist[currentTrackIdx];
             audioPlayer.play().catch(e => console.log('Audio autoplay prevented, needs interaction', e));
+            
+            btnPlayMusic.style.display = 'none';
+            btnPauseMusic.style.display = 'flex';
         }
 
         audioPlayer.addEventListener('ended', () => {
             playTrack(currentTrackIdx + 1);
         });
 
-        btnToggleMusic.addEventListener('click', () => {
-            if (audioPlayer.paused) {
-                audioPlayer.play();
-                btnToggleMusic.textContent = '🔊 Mute';
+        btnPlayMusic.addEventListener('click', () => {
+            finalThemeAudio.pause();
+            if(playlist.length > 0 && !audioPlayer.src) {
+                playTrack(currentTrackIdx);
             } else {
-                audioPlayer.pause();
-                btnToggleMusic.textContent = '🔈 Play';
+                audioPlayer.play();
             }
+            btnPlayMusic.style.display = 'none';
+            btnPauseMusic.style.display = 'flex';
+        });
+
+        btnPauseMusic.addEventListener('click', () => {
+            audioPlayer.pause();
+            finalThemeAudio.pause();
+            btnPauseMusic.style.display = 'none';
+            btnPlayMusic.style.display = 'flex';
         });
 
         btnNextMusic.addEventListener('click', () => {
             playTrack(currentTrackIdx + 1);
+        });
+        
+        btnPlayFinal.addEventListener('click', () => {
+            audioPlayer.pause();
+            btnPauseMusic.style.display = 'none';
+            btnPlayMusic.style.display = 'flex';
+            finalThemeAudio.currentTime = 0;
+            finalThemeAudio.play().catch(e => console.log(e));
         });
 
         btnCloseOverlay.addEventListener('click', () => {
@@ -681,6 +774,9 @@
                 // If playlist has items, start playing now that we had user interaction
                 if (playlist.length > 0) {
                     playTrack(0);
+                } else {
+                    // Even if no playlist uploaded, show the Play Final Theme button so they can at least trigger that.
+                    btnPlayFinal.style.display = 'flex';
                 }
 
                 generateBracket();
@@ -816,6 +912,35 @@
                 });
                 layout.appendChild(col);
             });
+            
+            // Check if tournament is completely over to render the Champion node securely in the tree
+            if (currentMatchIndex >= allMatches.length) {
+                const finalMatch = allMatches[allMatches.length - 1];
+                if (finalMatch && finalMatch.winner) {
+                    const champ = finalMatch.winner;
+                    
+                    const champCol = document.createElement('div');
+                    champCol.className = 'bracket-column';
+                    champCol.id = 'col-champion';
+                    
+                    const rLabel = document.createElement('div');
+                    rLabel.className = 'round-label';
+                    rLabel.textContent = "CHAMPION";
+                    rLabel.style.color = "#ffd700";
+                    champCol.appendChild(rLabel);
+                    
+                    const cNode = document.createElement('div');
+                    cNode.className = 'champion-node';
+                    cNode.innerHTML = `
+                        <img src="${champ.src}" class="combatant-img">
+                        <div class="combatant-info"><div class="combatant-name" style="font-size:2rem; color: white;">${champ.name}</div></div>
+                    `;
+                    champCol.appendChild(cNode);
+                    layout.appendChild(champCol);
+                    
+                    finalMatch.champDomRef = cNode;
+                }
+            }
         }
 
         function getDisplayObj(node) {
@@ -849,18 +974,25 @@
                 nextM.state = 'active';
             }
 
-            // Re-render updates classes (winner/loser) visually via our class logic
+            // Re-render updates classes (winner/loser) visually and handles appending Champion node
             renderBracket();
             recalcConnections();
 
             if (currentMatchIndex >= allMatches.length) {
-                // Tournament over! Show Overlay
+                // Tournament over! Auto play final theme
+                audioPlayer.pause();
+                btnPauseMusic.style.display = 'none';
+                btnPlayMusic.style.display = 'flex';
+                finalThemeAudio.currentTime = 0;
+                finalThemeAudio.play().catch(e => console.log(e));
+                
+                // Show Overlay
                 setTimeout(() => {
                     zoomToOverview();
                     champImg.src = match.winner.src;
                     champName.textContent = match.winner.name;
                     championOverlay.classList.add('show');
-                }, 500);
+                }, 1000);
             } else {
                 setTimeout(() => {
                     focusActiveMatch();
@@ -871,12 +1003,19 @@
         // 5. SVG Connections
         function recalcConnections() {
             connectionsSvg.innerHTML = '';
+            
+            // Ensure bounds can be calculated cleanly
+            const layoutRect = layout.getBoundingClientRect();
+
             allMatches.forEach(m => {
                 if (m.parentMatchId) {
                     const parentM = allMatches.find(x => x.id === m.parentMatchId);
                     if (parentM) {
                         drawCurve(m.domRef, parentM.domRef);
                     }
+                }
+                if (m.champDomRef) {
+                    drawCurve(m.domRef, m.champDomRef);
                 }
             });
         }
@@ -916,7 +1055,7 @@
         }
 
         viewport.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.match-node') || e.target.closest('.ui-controls') || e.target.closest('.music-controls')) return;
+            if (e.target.closest('.match-node') || e.target.closest('.ui-controls') || e.target.closest('.music-controls') || e.target.closest('.pan-controls')) return;
             isDragging = true;
             startPan = { x: e.clientX - transform.x, y: e.clientY - transform.y };
         });
@@ -958,7 +1097,10 @@
             const localX = (elRect.left - cxRect.left) / transform.scale + elRect.width / (2 * transform.scale);
             const localY = (elRect.top - cxRect.top) / transform.scale + elRect.height / (2 * transform.scale);
 
-            transform.scale = 0.9;
+            // Dynamically calculate scale so the target fills the screen tightly
+            const targetScaleX = (window.innerWidth * 0.95) / (elRect.width / transform.scale);
+            const targetScaleY = (window.innerHeight * 0.85) / (elRect.height / transform.scale);
+            transform.scale = Math.min(targetScaleX, targetScaleY, 2.5); // Cap scale at 2.5x
 
             transform.x = window.innerWidth / 2 - (localX * transform.scale);
             transform.y = window.innerHeight / 2 - (localY * transform.scale);
