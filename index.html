@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fight Club - Visual Bracket</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f1115;
+            --bg-canvas: #16181d;
+            --accent: #ff3366;
+            --accent-hover: #ff0040;
+            --accent-glow: rgba(255, 51, 102, 0.4);
+            --card-bg: rgba(30, 34, 42, 0.7);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-muted: #8a8f98;
+            --win-color: #2eeb9f;
+            --lose-color: #555861;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #setup-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #1e222a 0%, #0f1115 100%);
+            z-index: 100;
+            transition: opacity 0.5s ease;
+        }
+
+        #setup-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .title {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff, #8a8f98);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        .upload-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .upload-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px var(--accent-glow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-width: 300px;
+            text-align: center;
+        }
+
+        .upload-btn.audio-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--text-muted);
+            box-shadow: none;
+        }
+
+        .upload-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px var(--accent-glow);
+        }
+
+        .upload-btn.audio-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .upload-btn input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        #viewport {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-canvas);
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            cursor: grab;
+            overflow: hidden;
+        }
+
+        #viewport:active {
+            cursor: grabbing;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: 0 0;
+            will-change: transform;
+        }
+
+        .canvas-animated {
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        #connections {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: visible;
+            z-index: 1;
+        }
+
+        .bracket-layout {
+            display: flex;
+            padding: 150px;
+            gap: 200px;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .bracket-column {
+            display: flex;
+            flex-direction: column;
+            gap: 80px;
+            justify-content: center;
+            position: relative;
+        }
+
+        .round-label {
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.15);
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        .match-node {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 15px;
+            width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .match-node.active-match {
+            border-color: var(--accent);
+            box-shadow: 0 0 50px var(--accent-glow), 0 10px 30px rgba(0, 0, 0, 0.5);
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        .match-node.finished {
+            opacity: 0.8;
+            border-color: rgba(46, 235, 159, 0.3);
+        }
+
+        .combatant {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 10px;
+            gap: 10px;
+            position: relative;
+            cursor: default;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            overflow: hidden;
+        }
+
+        .active-match .combatant {
+            cursor: pointer;
+        }
+
+        .active-match .combatant:hover {
+            background: rgba(255, 51, 102, 0.15);
+            border-color: rgba(255, 51, 102, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .combatant.winner {
+            border-color: var(--win-color);
+            background: rgba(46, 235, 159, 0.15);
+            box-shadow: 0 0 30px rgba(46, 235, 159, 0.3), inset 0 0 15px rgba(46, 235, 159, 0.2);
+            z-index: 2;
+        }
+
+        .combatant.loser {
+            opacity: 0.4;
+            filter: grayscale(100%);
+        }
+
+        .combatant.loser::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -10%;
+            width: 120%;
+            height: 6px;
+            background: rgba(255, 51, 102, 0.9);
+            transform: translateY(-50%) rotate(15deg);
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+
+        .combatant.empty {
+            justify-content: center;
+            align-items: center;
+            height: 150px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .combatant-img {
+            width: 100%;
+            height: 280px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        .combatant-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px;
+        }
+
+        .combatant-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            text-align: center;
+        }
+
+        .vs-badge {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-base);
+            color: var(--text-muted);
+            font-weight: 800;
+            font-size: 1.1rem;
+            padding: 8px 16px;
+            border-radius: 30px;
+            border: 2px solid var(--card-border);
+            z-index: 5;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .active-match .vs-badge {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .ui-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 50;
+            background: rgba(15, 17, 21, 0.8);
+            padding: 10px 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .music-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            bottom: auto;
+            left: auto;
+            display: flex;
+            gap: 10px;
+            z-index: 50;
+        }
+
+        .pan-controls {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            z-index: 50;
+        }
+
+        .pan-row {
+            display: flex;
+            gap: 5px;
+        }
+
+        .pan-btn {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .pan-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+        }
+
+        .ui-btn {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: 'Outfit';
+            font-weight: 600;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+            font-size: 1rem;
+        }
+
+        .ui-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .ui-btn.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .ui-btn.primary:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        #champion-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 17, 21, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+            backdrop-filter: blur(20px);
+        }
+
+        #champion-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .champion-title {
+            font-size: 6rem;
+            font-weight: 800;
+            color: #ffd700;
+            text-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+            margin-bottom: 40px;
+            letter-spacing: 5px;
+            animation: pulse-gold 2s infinite;
+        }
+
+        @keyframes pulse-gold {
+
+            0%,
+            100% {
+                text-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+                transform: scale(1);
+            }
+
+            50% {
+                text-shadow: 0 0 80px rgba(255, 215, 0, 0.9);
+                transform: scale(1.05);
+            }
+        }
+
+        .champion-card {
+            background: var(--card-bg);
+            border: 3px solid #ffd700;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 80px rgba(255, 215, 0, 0.2);
+            width: 600px;
+            max-width: 90vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .champion-card img {
+            width: 100%;
+            height: 500px;
+            object-fit: contain;
+            border-radius: 12px;
+            background: #000;
+        }
+
+        .champion-card .name {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            text-align: center;
+        }
+
+        .overlay-close {
+            margin-top: 50px;
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            font-weight: 600;
+        }
+
+        .overlay-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="setup-screen">
+        <div class="title">FIGHT CLUB</div>
+        <div class="subtitle">Visual Tournament Bracket</div>
+        <div class="upload-buttons">
+            <div class="upload-btn">
+                SELECT COMBATANTS
+                <input type="file" id="image-upload" multiple accept="image/*" />
+            </div>
+            <div class="upload-btn audio-btn">
+                SELECT MUSIC FOLDER
+                <input type="file" id="audio-upload" webkitdirectory directory multiple />
+            </div>
+        </div>
+    </div>
+
+    <div id="viewport" class="hidden">
+        <div class="music-controls">
+            <button class="ui-btn" id="btn-toggle-music" style="display: none;">🔊 Mute</button>
+            <button class="ui-btn" id="btn-next-music" style="display: none;">⏭ Next</button>
+        </div>
+
+        <div class="pan-controls">
+            <button class="pan-btn" id="pan-up">▲</button>
+            <div class="pan-row">
+                <button class="pan-btn" id="pan-left">◀</button>
+                <button class="pan-btn" id="pan-down">▼</button>
+                <button class="pan-btn" id="pan-right">▶</button>
+            </div>
+        </div>
+
+        <div class="ui-controls">
+            <button class="ui-btn" id="btn-zoom-out">Overview</button>
+            <button class="ui-btn primary" id="btn-focus-active">Focus Match</button>
+        </div>
+        <div id="canvas">
+            <svg id="connections"></svg>
+            <div class="bracket-layout" id="bracket-layout">
+                <!-- Columns & Matches dynamically injected here -->
+            </div>
+        </div>
+    </div>
+
+    <div id="champion-overlay">
+        <div class="champion-title">WINNER</div>
+        <div class="champion-card">
+            <img id="champ-img" src="" alt="Champion">
+            <div class="name" id="champ-name">Name</div>
+        </div>
+        <button class="overlay-close" id="btn-close-overlay">Close & View Bracket</button>
+    </div>
+
+    <script>
+        // Data Structures
+        let players = [];
+        let rounds = []; // Array of Arrays of Matches
+        let allMatches = []; // Flattened list for easy access
+        let currentMatchIndex = 0; // Index in the sequential pending matches
+
+        // Music Player State
+        let playlist = [];
+        let currentTrackIdx = 0;
+        let audioPlayer = new Audio();
+
+        // DOM Elements
+        const setupScreen = document.getElementById('setup-screen');
+        const viewport = document.getElementById('viewport');
+        const canvas = document.getElementById('canvas');
+        const layout = document.getElementById('bracket-layout');
+        const connectionsSvg = document.getElementById('connections');
+
+        const fileInput = document.getElementById('image-upload');
+        const audioInput = document.getElementById('audio-upload');
+
+        const btnZoomOut = document.getElementById('btn-zoom-out');
+        const btnFocusActive = document.getElementById('btn-focus-active');
+        const btnToggleMusic = document.getElementById('btn-toggle-music');
+        const btnNextMusic = document.getElementById('btn-next-music');
+
+        const championOverlay = document.getElementById('champion-overlay');
+        const champImg = document.getElementById('champ-img');
+        const champName = document.getElementById('champ-name');
+        const btnCloseOverlay = document.getElementById('btn-close-overlay');
+
+        // Canvas State
+        let transform = { x: 0, y: 0, scale: 1 };
+        let isDragging = false;
+        let startPan = { x: 0, y: 0 };
+
+        // 1. Setup Audio Form
+        audioInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+            if (files.length > 0) {
+                playlist = files.map(f => URL.createObjectURL(f));
+                btnToggleMusic.style.display = 'block';
+                btnNextMusic.style.display = 'block';
+                btnToggleMusic.textContent = '🔊 Mute';
+
+                // Play indicator, but won't start until user interacts if blocked by browser
+                // We'll play it as soon as they select combatants.
+                audioInput.parentElement.style.borderColor = "var(--win-color)";
+            }
+        });
+
+        function playTrack(idx) {
+            if (playlist.length === 0) return;
+            currentTrackIdx = idx % playlist.length;
+            audioPlayer.src = playlist[currentTrackIdx];
+            audioPlayer.play().catch(e => console.log('Audio autoplay prevented, needs interaction', e));
+        }
+
+        audioPlayer.addEventListener('ended', () => {
+            playTrack(currentTrackIdx + 1);
+        });
+
+        btnToggleMusic.addEventListener('click', () => {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                btnToggleMusic.textContent = '🔊 Mute';
+            } else {
+                audioPlayer.pause();
+                btnToggleMusic.textContent = '🔈 Play';
+            }
+        });
+
+        btnNextMusic.addEventListener('click', () => {
+            playTrack(currentTrackIdx + 1);
+        });
+
+        btnCloseOverlay.addEventListener('click', () => {
+            championOverlay.classList.remove('show');
+            zoomToOverview();
+        });
+
+        // 2. Setup Images & Bracket
+        fileInput.addEventListener('change', async (e) => {
+            try {
+                const files = Array.from(e.target.files);
+                if (files.length < 2) {
+                    alert("Please select at least 2 images!");
+                    e.target.value = '';
+                    return;
+                }
+
+                players = await Promise.all(files.map(file => {
+                    return new Promise(resolve => {
+                        const reader = new FileReader();
+                        reader.onload = ev => resolve({
+                            id: 'p-' + Math.random().toString(36).substr(2, 9),
+                            name: file.name.split('.')[0],
+                            src: ev.target.result,
+                            isPlayer: true
+                        });
+                        reader.readAsDataURL(file);
+                    });
+                }));
+
+                // Shuffle players for random seeding
+                players.sort(() => Math.random() - 0.5);
+
+                setupScreen.classList.add('hidden');
+                viewport.classList.remove('hidden');
+
+                // If playlist has items, start playing now that we had user interaction
+                if (playlist.length > 0) {
+                    playTrack(0);
+                }
+
+                generateBracket();
+                renderBracket();
+                recalcConnections();
+
+                // Wait for DOM to layout, then focus the first match
+                setTimeout(() => {
+                    focusActiveMatch();
+                }, 100);
+
+                e.target.value = ''; // Reset input so user can select the same files again if testing
+
+            } catch (err) {
+                console.error(err);
+                alert("Error setting up players: " + err.message);
+                e.target.value = '';
+            }
+        });
+
+        // 3. Bracket Logic
+        function generateBracket() {
+            rounds = [];
+            allMatches = [];
+            let currentNodes = [...players];
+            let roundIdx = 0;
+
+            while (currentNodes.length > 1) {
+                let nextNodes = [];
+                let matchesThisRound = [];
+
+                let i = 0;
+                while (i < currentNodes.length - 1) {
+                    let match = {
+                        id: `m-${roundIdx}-${matchesThisRound.length}`,
+                        round: roundIdx,
+                        p1: currentNodes[i],
+                        p2: currentNodes[i + 1],
+                        winner: null,
+                        state: 'pending',
+                        domRef: null
+                    };
+                    matchesThisRound.push(match);
+                    allMatches.push(match);
+                    nextNodes.push(match); // Match represents its future winner
+                    i += 2;
+                }
+
+                // Odd one out goes FIRST in next round as requested
+                if (i === currentNodes.length - 1) {
+                    let oddNode = currentNodes[i];
+                    nextNodes.unshift(oddNode);
+                }
+
+                rounds.push(matchesThisRound);
+                currentNodes = nextNodes;
+                roundIdx++;
+            }
+
+            // Establish Parent/Child references for SVG lines
+            rounds.forEach(rnd => {
+                rnd.forEach(m => {
+                    if (!m.p1.isPlayer) m.p1.parentMatchId = m.id;
+                    if (!m.p2.isPlayer) m.p2.parentMatchId = m.id;
+                });
+            });
+
+            // Set the first match as active
+            if (allMatches.length > 0) {
+                allMatches[0].state = 'active';
+            }
+        }
+
+        // 4. Render Bracket DOM
+        function renderBracket() {
+            layout.innerHTML = '';
+            const totalRounds = rounds.length;
+
+            rounds.forEach((rnd, rIdx) => {
+                const col = document.createElement('div');
+                col.className = 'bracket-column';
+                col.id = `col-${rIdx}`;
+
+                // Inject Round Label
+                const rLabel = document.createElement('div');
+                rLabel.className = 'round-label';
+
+                let labelText = `Round ${rIdx + 1}`;
+                if (rIdx === totalRounds - 1) labelText = "Finals";
+                else if (totalRounds > 2 && rIdx === totalRounds - 2) labelText = "Semifinals";
+                else if (totalRounds > 3 && rIdx === totalRounds - 3) labelText = "Quarterfinals";
+
+                rLabel.textContent = labelText;
+                col.appendChild(rLabel);
+
+                rnd.forEach(m => {
+                    const mDiv = document.createElement('div');
+                    mDiv.className = `match-node ${m.state === 'active' ? 'active-match' : ''}`;
+                    if (m.state === 'finished') mDiv.className += ' finished';
+                    mDiv.id = m.id;
+                    m.domRef = mDiv;
+
+                    // Compute display for P1
+                    let p1Display = getDisplayObj(m.p1);
+                    let p2Display = getDisplayObj(m.p2);
+
+                    const actualP1 = m.p1.isPlayer ? m.p1 : m.p1.winner;
+                    const actualP2 = m.p2.isPlayer ? m.p2 : m.p2.winner;
+
+                    const c1Class = `combatant p1 ${m.winner && m.winner === actualP1 ? 'winner' : ''} ${m.winner !== null && m.winner !== actualP1 ? 'loser' : ''}`;
+                    const c2Class = `combatant p2 ${m.winner && m.winner === actualP2 ? 'winner' : ''} ${m.winner !== null && m.winner !== actualP2 ? 'loser' : ''}`;
+
+                    mDiv.innerHTML = `
+                        <div class="${c1Class}" data-side="p1">
+                            ${p1Display}
+                        </div>
+                        <div class="vs-badge">VS</div>
+                        <div class="${c2Class}" data-side="p2">
+                            ${p2Display}
+                        </div>
+                    `;
+
+                    // Click handler to choose winner
+                    mDiv.querySelectorAll('.combatant').forEach(el => {
+                        el.addEventListener('click', () => {
+                            if (m.state !== 'active') return;
+                            const side = el.getAttribute('data-side');
+                            decideWinner(m, side);
+                        });
+                    });
+
+                    col.appendChild(mDiv);
+                });
+                layout.appendChild(col);
+            });
+        }
+
+        function getDisplayObj(node) {
+            if (node.isPlayer) {
+                return `<img src="${node.src}" class="combatant-img"><div class="combatant-info"><div class="combatant-name">${node.name}</div></div>`;
+            } else {
+                // It's a match node. Have we resolved it?
+                if (node.winner) {
+                    return `<img src="${node.winner.src}" class="combatant-img"><div class="combatant-info"><div class="combatant-name">${node.winner.name}</div></div>`;
+                } else {
+                    return `<div class="combatant-info empty">Waiting for Match...</div>`;
+                }
+            }
+        }
+
+        function decideWinner(match, side) {
+            const winnerNode = side === 'p1' ? match.p1 : match.p2;
+            const loserSide = side === 'p1' ? 'p2' : 'p1';
+
+            // Can't pick if the combatant is just a pending match placeholder
+            if (!winnerNode.isPlayer && !winnerNode.winner) return;
+
+            // Resolve actual player
+            match.winner = winnerNode.isPlayer ? winnerNode : winnerNode.winner;
+            match.state = 'finished';
+
+            // Find next match to activate
+            currentMatchIndex++;
+            if (currentMatchIndex < allMatches.length) {
+                const nextM = allMatches[currentMatchIndex];
+                nextM.state = 'active';
+            }
+
+            // Re-render updates classes (winner/loser) visually via our class logic
+            renderBracket();
+            recalcConnections();
+
+            if (currentMatchIndex >= allMatches.length) {
+                // Tournament over! Show Overlay
+                setTimeout(() => {
+                    zoomToOverview();
+                    champImg.src = match.winner.src;
+                    champName.textContent = match.winner.name;
+                    championOverlay.classList.add('show');
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    focusActiveMatch();
+                }, 500);
+            }
+        }
+
+        // 5. SVG Connections
+        function recalcConnections() {
+            connectionsSvg.innerHTML = '';
+            allMatches.forEach(m => {
+                if (m.parentMatchId) {
+                    const parentM = allMatches.find(x => x.id === m.parentMatchId);
+                    if (parentM) {
+                        drawCurve(m.domRef, parentM.domRef);
+                    }
+                }
+            });
+        }
+
+        function drawCurve(el1, el2) {
+            const r1 = el1.getBoundingClientRect();
+            const r2 = el2.getBoundingClientRect();
+            const cxRect = canvas.getBoundingClientRect();
+
+            // Source (Right center of el1)
+            const x1 = (r1.right - cxRect.left) / transform.scale;
+            const y1 = (r1.top + r1.height / 2 - cxRect.top) / transform.scale;
+
+            // Target (Left center of el2)
+            const x2 = (r2.left - cxRect.left) / transform.scale;
+            const y2 = (r2.top + r2.height / 2 - cxRect.top) / transform.scale;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const cpOffset = Math.max(Math.abs(x2 - x1) / 2, 50);
+
+            const d = `M ${x1},${y1} C ${x1 + cpOffset},${y1} ${x2 - cpOffset},${y2} ${x2},${y2}`;
+
+            path.setAttribute('d', d);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', 'rgba(255,255,255,0.15)');
+            path.setAttribute('stroke-width', '4');
+
+            connectionsSvg.appendChild(path);
+        }
+
+        // 6. Canvas Pan/Zoom Logic
+        function updateTransform(useAnimation = false) {
+            if (useAnimation) canvas.classList.add('canvas-animated');
+            else canvas.classList.remove('canvas-animated');
+
+            canvas.style.transform = `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`;
+        }
+
+        viewport.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.match-node') || e.target.closest('.ui-controls') || e.target.closest('.music-controls')) return;
+            isDragging = true;
+            startPan = { x: e.clientX - transform.x, y: e.clientY - transform.y };
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            transform.x = e.clientX - startPan.x;
+            transform.y = e.clientY - startPan.y;
+            updateTransform(false);
+        });
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        window.addEventListener('mouseleave', () => { isDragging = false; });
+
+        viewport.addEventListener('wheel', (e) => {
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            const prevScale = transform.scale;
+            const targetScale = Math.min(Math.max(0.1, transform.scale * delta), 3);
+
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+
+            transform.x = mouseX - (mouseX - transform.x) * (targetScale / prevScale);
+            transform.y = mouseY - (mouseY - transform.y) * (targetScale / prevScale);
+            transform.scale = targetScale;
+
+            updateTransform(false);
+        }, { passive: true });
+
+        // 7. Camera Controllers
+        function focusActiveMatch() {
+            if (currentMatchIndex >= allMatches.length) return;
+            const activeM = allMatches[currentMatchIndex];
+            const el = activeM.domRef;
+
+            const elRect = el.getBoundingClientRect();
+            const cxRect = canvas.getBoundingClientRect();
+
+            const localX = (elRect.left - cxRect.left) / transform.scale + elRect.width / (2 * transform.scale);
+            const localY = (elRect.top - cxRect.top) / transform.scale + elRect.height / (2 * transform.scale);
+
+            transform.scale = 0.9;
+
+            transform.x = window.innerWidth / 2 - (localX * transform.scale);
+            transform.y = window.innerHeight / 2 - (localY * transform.scale);
+
+            updateTransform(true);
+        }
+
+        function zoomToOverview() {
+            const boundsX = layout.scrollWidth;
+            const boundsY = layout.scrollHeight;
+
+            const scaleX = window.innerWidth / (boundsX + 100);
+            const scaleY = window.innerHeight / (boundsY + 100);
+            transform.scale = Math.min(scaleX, scaleY, 1);
+
+            transform.x = (window.innerWidth - boundsX * transform.scale) / 2;
+            transform.y = (window.innerHeight - boundsY * transform.scale) / 2;
+
+            updateTransform(true);
+        }
+
+        btnFocusActive.addEventListener('click', focusActiveMatch);
+        btnZoomOut.addEventListener('click', zoomToOverview);
+
+        document.getElementById('pan-up').addEventListener('click', () => { transform.y += 150; updateTransform(true); });
+        document.getElementById('pan-down').addEventListener('click', () => { transform.y -= 150; updateTransform(true); });
+        document.getElementById('pan-left').addEventListener('click', () => { transform.x += 150; updateTransform(true); });
+        document.getElementById('pan-right').addEventListener('click', () => { transform.x -= 150; updateTransform(true); });
+
+        window.addEventListener('resize', () => {
+            recalcConnections();
+        });
+
+    </script>
+</body>
+
+</html>
