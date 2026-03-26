@@ -98,9 +98,6 @@
         }
 
         .upload-btn.audio-btn {
-            background: var(--card-bg);
-            border: 1px solid var(--text-muted);
-            box-shadow: none;
             min-width: 80px;
             width: 80px;
             height: 80px;
@@ -115,10 +112,6 @@
             background: var(--accent-hover);
             transform: translateY(-2px);
             box-shadow: 0 15px 40px var(--accent-glow);
-        }
-
-        .upload-btn.audio-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
         }
 
         .upload-btn input[type="file"] {
@@ -207,11 +200,13 @@
             border: 1px solid var(--card-border);
             border-radius: 16px;
             padding: 15px;
-            width: 800px; /* Wider for side-by-side */
+            width: 400px;
+            /* Stacked layout size */
             max-width: 90vw;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             display: flex;
-            flex-direction: row; /* Layout side-by-side */
+            flex-direction: column;
+            /* Standard stacked overview */
             gap: 15px;
             position: relative;
             backdrop-filter: blur(10px);
@@ -220,6 +215,10 @@
         }
 
         .match-node.active-match {
+            width: 1200px;
+            /* Horizontal expanded size */
+            flex-direction: row;
+            /* Layout side-by-side */
             border-color: var(--accent);
             box-shadow: 0 0 50px var(--accent-glow), 0 10px 30px rgba(0, 0, 0, 0.5);
             transform: scale(1.05);
@@ -234,7 +233,6 @@
         .combatant {
             background: rgba(0, 0, 0, 0.4);
             border-radius: 12px;
-            flex: 1; /* Take up half the width */
             display: flex;
             flex-direction: column;
             align-items: stretch;
@@ -245,10 +243,14 @@
             transition: all 0.3s;
             border: 2px solid transparent;
             overflow: hidden;
-            width: 50%;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .active-match .combatant {
+            flex: 1;
+            /* Take up horizontal space */
+            width: 50%;
             cursor: pointer;
         }
 
@@ -286,17 +288,28 @@
         .combatant.empty {
             justify-content: center;
             align-items: center;
-            height: 400px;
+            height: 250px;
             color: var(--text-muted);
             font-style: italic;
         }
 
+        .active-match .combatant.empty {
+            height: 400px;
+        }
+
         .combatant-img {
             width: 100%;
-            height: 400px; /* Much taller image */
-            object-fit: contain; /* Don't cut off */
+            height: 250px;
+            /* Standard stacked height */
+            object-fit: contain;
+            /* Don't cut off */
             border-radius: 8px;
             background: #000;
+        }
+
+        .active-match .combatant-img {
+            height: 400px;
+            /* Taller for active side-by-side view */
         }
 
         .combatant-info {
@@ -338,7 +351,7 @@
             border-color: var(--accent);
             box-shadow: 0 0 20px var(--accent-glow);
         }
-        
+
         .champion-node {
             background: var(--card-bg);
             border: 5px solid #ffd700;
@@ -354,15 +367,22 @@
             z-index: 20;
             align-items: center;
         }
-        
+
         @keyframes popIn {
-            0% { transform: scale(0.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
-        
+
         .champion-node .combatant-img {
             height: 500px;
-            border: 2px solid rgba(255,215,0,0.5);
+            border: 2px solid rgba(255, 215, 0, 0.5);
         }
 
         .music-controls {
@@ -458,19 +478,20 @@
             background: var(--accent-hover);
             box-shadow: 0 0 15px var(--accent-glow);
         }
-        
+
         .ui-btn.gold {
             background: linear-gradient(135deg, #ffd700, #ffaa00);
             color: #000;
             font-weight: 800;
             border: none;
-            box-shadow: 0 0 15px rgba(255,215,0,0.4);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
         }
+
         .ui-btn.gold:hover {
-            box-shadow: 0 0 30px rgba(255,215,0,0.6);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
             transform: translateY(-2px);
         }
-        
+
         .ui-btn.icon-only {
             padding: 10px;
             width: 45px;
@@ -601,7 +622,8 @@
             <button class="ui-btn icon-only" id="btn-play-music" style="display: none;" title="Play">▶</button>
             <button class="ui-btn icon-only" id="btn-pause-music" style="display: none;" title="Pause">⏸</button>
             <button class="ui-btn icon-only" id="btn-next-music" style="display: none;" title="Next">⏭</button>
-            <button class="ui-btn gold icon-only" id="btn-play-final" style="display: none;" title="Final Theme">🏆</button>
+            <button class="ui-btn gold icon-only" id="btn-play-final" style="display: none;"
+                title="Final Theme">🏆</button>
         </div>
 
         <div class="pan-controls">
@@ -645,7 +667,7 @@
         let playlist = [];
         let currentTrackIdx = 0;
         let audioPlayer = new Audio();
-        
+
         // Final Theme Setup
         let finalThemeAudio = new Audio('Fight Club Playlist/FINAL_Gonna Fly Now .mp3');
 
@@ -680,6 +702,7 @@
         audioInput.addEventListener('change', (e) => {
             const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
             if (files.length > 0) {
+                files.sort((a, b) => a.name.localeCompare(b.name));
                 playlist = files.map(f => URL.createObjectURL(f));
                 btnPauseMusic.style.display = 'flex';
                 btnNextMusic.style.display = 'flex';
@@ -698,7 +721,7 @@
             finalThemeAudio.pause();
             audioPlayer.src = playlist[currentTrackIdx];
             audioPlayer.play().catch(e => console.log('Audio autoplay prevented, needs interaction', e));
-            
+
             btnPlayMusic.style.display = 'none';
             btnPauseMusic.style.display = 'flex';
         }
@@ -709,7 +732,7 @@
 
         btnPlayMusic.addEventListener('click', () => {
             finalThemeAudio.pause();
-            if(playlist.length > 0 && !audioPlayer.src) {
+            if (playlist.length > 0 && !audioPlayer.src) {
                 playTrack(currentTrackIdx);
             } else {
                 audioPlayer.play();
@@ -728,7 +751,7 @@
         btnNextMusic.addEventListener('click', () => {
             playTrack(currentTrackIdx + 1);
         });
-        
+
         btnPlayFinal.addEventListener('click', () => {
             audioPlayer.pause();
             btnPauseMusic.style.display = 'none';
@@ -912,23 +935,23 @@
                 });
                 layout.appendChild(col);
             });
-            
+
             // Check if tournament is completely over to render the Champion node securely in the tree
             if (currentMatchIndex >= allMatches.length) {
                 const finalMatch = allMatches[allMatches.length - 1];
                 if (finalMatch && finalMatch.winner) {
                     const champ = finalMatch.winner;
-                    
+
                     const champCol = document.createElement('div');
                     champCol.className = 'bracket-column';
                     champCol.id = 'col-champion';
-                    
+
                     const rLabel = document.createElement('div');
                     rLabel.className = 'round-label';
                     rLabel.textContent = "CHAMPION";
                     rLabel.style.color = "#ffd700";
                     champCol.appendChild(rLabel);
-                    
+
                     const cNode = document.createElement('div');
                     cNode.className = 'champion-node';
                     cNode.innerHTML = `
@@ -937,7 +960,7 @@
                     `;
                     champCol.appendChild(cNode);
                     layout.appendChild(champCol);
-                    
+
                     finalMatch.champDomRef = cNode;
                 }
             }
@@ -983,9 +1006,11 @@
                 audioPlayer.pause();
                 btnPauseMusic.style.display = 'none';
                 btnPlayMusic.style.display = 'flex';
-                finalThemeAudio.currentTime = 0;
-                finalThemeAudio.play().catch(e => console.log(e));
-                
+                if (finalThemeAudio.paused) {
+                    finalThemeAudio.currentTime = 0;
+                    finalThemeAudio.play().catch(e => console.log(e));
+                }
+
                 // Show Overlay
                 setTimeout(() => {
                     zoomToOverview();
@@ -1003,7 +1028,7 @@
         // 5. SVG Connections
         function recalcConnections() {
             connectionsSvg.innerHTML = '';
-            
+
             // Ensure bounds can be calculated cleanly
             const layoutRect = layout.getBoundingClientRect();
 
