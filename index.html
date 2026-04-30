@@ -98,14 +98,15 @@
         }
 
         .upload-btn.audio-btn {
-            min-width: 80px;
-            width: 80px;
-            height: 80px;
+            min-width: 60px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             padding: 0;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-top: 10px;
         }
 
         .upload-btn:hover {
@@ -317,16 +318,6 @@
             flex-direction: column;
             align-items: center;
             padding: 5px;
-        }
-
-        .combatant-name {
-            font-size: 1.3rem;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
-            text-align: center;
         }
 
         .vs-badge {
@@ -651,7 +642,6 @@
         <div class="champion-title">WINNER</div>
         <div class="champion-card">
             <img id="champ-img" src="" alt="Champion">
-            <div class="name" id="champ-name">Name</div>
         </div>
         <button class="overlay-close" id="btn-close-overlay">Close & View Bracket</button>
     </div>
@@ -690,7 +680,6 @@
 
         const championOverlay = document.getElementById('champion-overlay');
         const champImg = document.getElementById('champ-img');
-        const champName = document.getElementById('champ-name');
         const btnCloseOverlay = document.getElementById('btn-close-overlay');
 
         // Canvas State
@@ -956,7 +945,6 @@
                     cNode.className = 'champion-node';
                     cNode.innerHTML = `
                         <img src="${champ.src}" class="combatant-img">
-                        <div class="combatant-info"><div class="combatant-name" style="font-size:2rem; color: white;">${champ.name}</div></div>
                     `;
                     champCol.appendChild(cNode);
                     layout.appendChild(champCol);
@@ -968,11 +956,11 @@
 
         function getDisplayObj(node) {
             if (node.isPlayer) {
-                return `<img src="${node.src}" class="combatant-img"><div class="combatant-info"><div class="combatant-name">${node.name}</div></div>`;
+                return `<img src="${node.src}" class="combatant-img">`;
             } else {
                 // It's a match node. Have we resolved it?
                 if (node.winner) {
-                    return `<img src="${node.winner.src}" class="combatant-img"><div class="combatant-info"><div class="combatant-name">${node.winner.name}</div></div>`;
+                    return `<img src="${node.winner.src}" class="combatant-img">`;
                 } else {
                     return `<div class="combatant-info empty">Waiting for Match...</div>`;
                 }
@@ -1015,7 +1003,6 @@
                 setTimeout(() => {
                     zoomToOverview();
                     champImg.src = match.winner.src;
-                    champName.textContent = match.winner.name;
                     championOverlay.classList.add('show');
                 }, 1000);
             } else {
