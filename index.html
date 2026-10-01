@@ -169,7 +169,7 @@
             display: flex;
             padding: 150px;
             gap: 200px;
-            align-items: center;
+            align-items: stretch;
             position: relative;
             z-index: 2;
         }
@@ -177,8 +177,7 @@
         .bracket-column {
             display: flex;
             flex-direction: column;
-            gap: 80px;
-            justify-content: center;
+            justify-content: space-around;
             position: relative;
         }
 
@@ -378,13 +377,135 @@
 
         .music-controls {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            bottom: auto;
-            left: auto;
+            top: 24px;
+            right: 24px;
             display: flex;
+            align-items: center;
             gap: 10px;
             z-index: 50;
+            background: rgba(20, 24, 32, 0.85);
+            padding: 8px 16px 8px 14px;
+            border-radius: 40px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .music-controls:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .music-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-right: 10px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 220px;
+            overflow: hidden;
+        }
+
+        .music-icon-disc {
+            font-size: 1.1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .music-controls.playing .music-icon-disc {
+            color: var(--accent);
+            animation: spinDisc 3s linear infinite;
+        }
+
+        @keyframes spinDisc {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .music-track-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 170px;
+            letter-spacing: 0.3px;
+            transition: color 0.3s ease;
+        }
+
+        .music-controls.playing .music-track-title {
+            color: #ffffff;
+        }
+
+        .music-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .music-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            outline: none;
+            padding: 0;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .music-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.08);
+        }
+
+        .music-btn:active {
+            transform: scale(0.95);
+        }
+
+        .music-btn.play-pause {
+            width: 44px;
+            height: 44px;
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #ffffff;
+            font-size: 1.15rem;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .music-btn.play-pause:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+            box-shadow: 0 6px 20px var(--accent-glow);
+            transform: scale(1.1);
+        }
+
+        .music-btn.gold {
+            background: linear-gradient(135deg, #ffd700, #ff9900);
+            border: none;
+            color: #000;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.35);
+        }
+
+        .music-btn.gold:hover {
+            box-shadow: 0 6px 22px rgba(255, 215, 0, 0.6);
+            transform: scale(1.1);
         }
 
         .pan-controls {
@@ -609,12 +730,18 @@
     </div>
 
     <div id="viewport" class="hidden">
-        <div class="music-controls">
-            <button class="ui-btn icon-only" id="btn-play-music" style="display: none;" title="Play">▶</button>
-            <button class="ui-btn icon-only" id="btn-pause-music" style="display: none;" title="Pause">⏸</button>
-            <button class="ui-btn icon-only" id="btn-next-music" style="display: none;" title="Next">⏭</button>
-            <button class="ui-btn gold icon-only" id="btn-play-final" style="display: none;"
-                title="Final Theme">🏆</button>
+        <div class="music-controls" id="music-controls">
+            <div class="music-info">
+                <span class="music-icon-disc">🎵</span>
+                <span class="music-track-title" id="music-track-title">01 Eye Of The Tiger</span>
+            </div>
+            <div class="music-buttons">
+                <button class="music-btn" id="btn-prev-music" title="Previous Track">⏮</button>
+                <button class="music-btn play-pause" id="btn-play-music" title="Play">▶</button>
+                <button class="music-btn play-pause" id="btn-pause-music" style="display: none;" title="Pause">⏸</button>
+                <button class="music-btn" id="btn-next-music" title="Next Track">⏭</button>
+                <button class="music-btn gold" id="btn-play-final" title="Final Theme">🏆</button>
+            </div>
         </div>
 
         <div class="pan-controls">
@@ -653,10 +780,26 @@
         let allMatches = []; // Flattened list for easy access
         let currentMatchIndex = 0; // Index in the sequential pending matches
 
+        // Default Playlist from Fight Club Playlist folder
+        const defaultPlaylist = [
+            { title: '01 Eye Of The Tiger', src: 'Fight Club Playlist/01 Eye Of The Tiger.mp3' },
+            { title: '02 Going The Distance', src: 'Fight Club Playlist/02 Going The Distance.mp3' },
+            { title: '03 Duel of The Fates', src: 'Fight Club Playlist/03 Duel of The Fates .mp3' },
+            { title: '04 The Final Shellshock', src: 'Fight Club Playlist/04 The Final Shellshock.mp3' },
+            { title: '05 Thunderstruck', src: 'Fight Club Playlist/05 Thunderstruck.mp3' },
+            { title: '06 Chicago Bulls Theme', src: 'Fight Club Playlist/06 Chicago Bulls Theme Song .mp3' },
+            { title: '07 Million Dollar Baby', src: 'Fight Club Playlist/07 Million Dollar Baby.mp3' },
+            { title: 'Final Theme (Rocky)', src: 'Fight Club Playlist/FINAL_Gonna Fly Now .mp3' }
+        ];
+
         // Music Player State
-        let playlist = [];
+        let playlist = [...defaultPlaylist];
         let currentTrackIdx = 0;
         let audioPlayer = new Audio();
+        audioPlayer.preload = 'auto';
+        if (playlist.length > 0) {
+            audioPlayer.src = playlist[0].src;
+        }
 
         // Final Theme Setup
         let finalThemeAudio = new Audio('Fight Club Playlist/FINAL_Gonna Fly Now .mp3');
@@ -673,6 +816,9 @@
 
         const btnZoomOut = document.getElementById('btn-zoom-out');
         const btnFocusActive = document.getElementById('btn-focus-active');
+        const musicControls = document.getElementById('music-controls');
+        const musicTrackTitle = document.getElementById('music-track-title');
+        const btnPrevMusic = document.getElementById('btn-prev-music');
         const btnPlayMusic = document.getElementById('btn-play-music');
         const btnPauseMusic = document.getElementById('btn-pause-music');
         const btnNextMusic = document.getElementById('btn-next-music');
@@ -687,18 +833,42 @@
         let isDragging = false;
         let startPan = { x: 0, y: 0 };
 
+        function updateMusicUI(isPlaying) {
+            btnPlayMusic.style.display = isPlaying ? 'none' : 'inline-flex';
+            btnPauseMusic.style.display = isPlaying ? 'inline-flex' : 'none';
+            btnPrevMusic.style.display = 'inline-flex';
+            btnNextMusic.style.display = 'inline-flex';
+            btnPlayFinal.style.display = 'inline-flex';
+
+            if (isPlaying) {
+                musicControls.classList.add('playing');
+            } else {
+                musicControls.classList.remove('playing');
+            }
+
+            if (playlist.length > 0 && playlist[currentTrackIdx]) {
+                musicTrackTitle.textContent = playlist[currentTrackIdx].title;
+            }
+        }
+
         // 1. Setup Audio Form
         audioInput.addEventListener('change', (e) => {
             const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
             if (files.length > 0) {
                 files.sort((a, b) => a.name.localeCompare(b.name));
-                playlist = files.map(f => URL.createObjectURL(f));
-                btnPauseMusic.style.display = 'flex';
-                btnNextMusic.style.display = 'flex';
-                btnPlayFinal.style.display = 'flex';
+                playlist = files.map(f => ({
+                    title: f.name.replace(/\.[^/.]+$/, '').trim(),
+                    src: URL.createObjectURL(f)
+                }));
+                currentTrackIdx = 0;
+                audioPlayer.src = playlist[0].src;
+                const finalFile = files.find(f => f.name.toUpperCase().startsWith('FINAL'));
+                if (finalFile) {
+                    finalThemeAudio = new Audio(URL.createObjectURL(finalFile));
+                }
+                updateMusicUI(false);
 
                 // Play indicator, but won't start until user interacts if blocked by browser
-                // We'll play it as soon as they select combatants.
                 audioInput.parentElement.style.borderColor = "var(--win-color)";
                 audioInput.parentElement.style.background = "rgba(46, 235, 159, 0.2)";
             }
@@ -706,13 +876,15 @@
 
         function playTrack(idx) {
             if (playlist.length === 0) return;
-            currentTrackIdx = idx % playlist.length;
+            currentTrackIdx = (idx + playlist.length) % playlist.length;
             finalThemeAudio.pause();
-            audioPlayer.src = playlist[currentTrackIdx];
-            audioPlayer.play().catch(e => console.log('Audio autoplay prevented, needs interaction', e));
+            audioPlayer.src = playlist[currentTrackIdx].src;
+            audioPlayer.play().catch(e => {
+                console.log('Audio autoplay prevented, needs interaction', e);
+                updateMusicUI(false);
+            });
 
-            btnPlayMusic.style.display = 'none';
-            btnPauseMusic.style.display = 'flex';
+            updateMusicUI(true);
         }
 
         audioPlayer.addEventListener('ended', () => {
@@ -724,17 +896,19 @@
             if (playlist.length > 0 && !audioPlayer.src) {
                 playTrack(currentTrackIdx);
             } else {
-                audioPlayer.play();
+                audioPlayer.play().catch(e => console.log(e));
+                updateMusicUI(true);
             }
-            btnPlayMusic.style.display = 'none';
-            btnPauseMusic.style.display = 'flex';
         });
 
         btnPauseMusic.addEventListener('click', () => {
             audioPlayer.pause();
             finalThemeAudio.pause();
-            btnPauseMusic.style.display = 'none';
-            btnPlayMusic.style.display = 'flex';
+            updateMusicUI(false);
+        });
+
+        btnPrevMusic.addEventListener('click', () => {
+            playTrack(currentTrackIdx - 1);
         });
 
         btnNextMusic.addEventListener('click', () => {
@@ -743,8 +917,8 @@
 
         btnPlayFinal.addEventListener('click', () => {
             audioPlayer.pause();
-            btnPauseMusic.style.display = 'none';
-            btnPlayMusic.style.display = 'flex';
+            musicTrackTitle.textContent = '🏆 Final Theme (Rocky)';
+            updateMusicUI(false);
             finalThemeAudio.currentTime = 0;
             finalThemeAudio.play().catch(e => console.log(e));
         });
@@ -783,13 +957,8 @@
                 setupScreen.classList.add('hidden');
                 viewport.classList.remove('hidden');
 
-                // If playlist has items, start playing now that we had user interaction
-                if (playlist.length > 0) {
-                    playTrack(0);
-                } else {
-                    // Even if no playlist uploaded, show the Play Final Theme button so they can at least trigger that.
-                    btnPlayFinal.style.display = 'flex';
-                }
+                // Show media controls ready to play on user button press (no auto-play)
+                updateMusicUI(false);
 
                 generateBracket();
                 renderBracket();
@@ -992,8 +1161,7 @@
             if (currentMatchIndex >= allMatches.length) {
                 // Tournament over! Auto play final theme
                 audioPlayer.pause();
-                btnPauseMusic.style.display = 'none';
-                btnPlayMusic.style.display = 'flex';
+                updateMusicUI(false);
                 if (finalThemeAudio.paused) {
                     finalThemeAudio.currentTime = 0;
                     finalThemeAudio.play().catch(e => console.log(e));
@@ -1012,48 +1180,93 @@
             }
         }
 
-        // 5. SVG Connections
+        // 5. SVG Connections (Right-angle tournament bracket lines)
         function recalcConnections() {
             connectionsSvg.innerHTML = '';
 
-            // Ensure bounds can be calculated cleanly
-            const layoutRect = layout.getBoundingClientRect();
+            const cxRect = canvas.getBoundingClientRect();
+
+            // Map targetId -> { targetEl, children: [] }
+            const targetsMap = new Map();
 
             allMatches.forEach(m => {
                 if (m.parentMatchId) {
                     const parentM = allMatches.find(x => x.id === m.parentMatchId);
-                    if (parentM) {
-                        drawCurve(m.domRef, parentM.domRef);
+                    if (parentM && parentM.domRef && m.domRef) {
+                        if (!targetsMap.has(parentM.id)) {
+                            targetsMap.set(parentM.id, {
+                                targetEl: parentM.domRef,
+                                children: []
+                            });
+                        }
+                        targetsMap.get(parentM.id).children.push(m);
                     }
                 }
-                if (m.champDomRef) {
-                    drawCurve(m.domRef, m.champDomRef);
+                if (m.champDomRef && m.domRef) {
+                    const champKey = 'col-champion';
+                    if (!targetsMap.has(champKey)) {
+                        targetsMap.set(champKey, {
+                            targetEl: m.champDomRef,
+                            children: []
+                        });
+                    }
+                    targetsMap.get(champKey).children.push(m);
                 }
+            });
+
+            targetsMap.forEach(({ targetEl, children }) => {
+                drawRightAngleBracket(children, targetEl, cxRect);
             });
         }
 
-        function drawCurve(el1, el2) {
-            const r1 = el1.getBoundingClientRect();
-            const r2 = el2.getBoundingClientRect();
-            const cxRect = canvas.getBoundingClientRect();
+        function drawRightAngleBracket(children, targetEl, cxRect) {
+            if (!children || children.length === 0 || !targetEl) return;
 
-            // Source (Right center of el1)
-            const x1 = (r1.right - cxRect.left) / transform.scale;
-            const y1 = (r1.top + r1.height / 2 - cxRect.top) / transform.scale;
+            const rTarget = targetEl.getBoundingClientRect();
+            const xTarget = (rTarget.left - cxRect.left) / transform.scale;
+            const yTarget = (rTarget.top + rTarget.height / 2 - cxRect.top) / transform.scale;
 
-            // Target (Left center of el2)
-            const x2 = (r2.left - cxRect.left) / transform.scale;
-            const y2 = (r2.top + r2.height / 2 - cxRect.top) / transform.scale;
+            const childCoords = children.map(c => {
+                const r = c.domRef.getBoundingClientRect();
+                return {
+                    x: (r.right - cxRect.left) / transform.scale,
+                    y: (r.top + r.height / 2 - cxRect.top) / transform.scale
+                };
+            }).sort((a, b) => a.y - b.y);
+
+            // Compute midX between the child column and the target
+            // Layout gap is 200px, so midpoint is 100px before target
+            const maxChildX = Math.max(...childCoords.map(c => c.x));
+            const midX = Math.max(maxChildX + 20, xTarget - 100);
+
+            let d = '';
+
+            if (childCoords.length === 2) {
+                const topChild = childCoords[0];
+                const bottomChild = childCoords[1];
+
+                const spineMinY = Math.min(topChild.y, yTarget);
+                const spineMaxY = Math.max(bottomChild.y, yTarget);
+
+                d = `M ${topChild.x},${topChild.y} H ${midX} V ${spineMinY} V ${spineMaxY} V ${bottomChild.y} H ${bottomChild.x} M ${midX},${yTarget} H ${xTarget}`;
+            } else if (childCoords.length === 1) {
+                const c = childCoords[0];
+                d = `M ${c.x},${c.y} H ${midX} V ${yTarget} H ${xTarget}`;
+            } else {
+                const minY = Math.min(...childCoords.map(c => c.y), yTarget);
+                const maxY = Math.max(...childCoords.map(c => c.y), yTarget);
+                let segments = childCoords.map(c => `M ${c.x},${c.y} H ${midX}`).join(' ');
+                segments += ` M ${midX},${minY} V ${maxY} M ${midX},${yTarget} H ${xTarget}`;
+                d = segments;
+            }
 
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            const cpOffset = Math.max(Math.abs(x2 - x1) / 2, 50);
-
-            const d = `M ${x1},${y1} C ${x1 + cpOffset},${y1} ${x2 - cpOffset},${y2} ${x2},${y2}`;
-
             path.setAttribute('d', d);
             path.setAttribute('fill', 'none');
-            path.setAttribute('stroke', 'rgba(255,255,255,0.15)');
+            path.setAttribute('stroke', 'rgba(255,255,255,0.2)');
             path.setAttribute('stroke-width', '4');
+            path.setAttribute('stroke-linejoin', 'miter');
+            path.setAttribute('stroke-linecap', 'square');
 
             connectionsSvg.appendChild(path);
         }
