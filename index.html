@@ -225,6 +225,24 @@
             z-index: 10;
         }
 
+        .match-node.final-match {
+            padding-top: 60px;
+        }
+
+        .final-match-label {
+            position: absolute;
+            top: 16px;
+            left: 0;
+            right: 0;
+            margin: 0;
+            color: var(--accent);
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
         .match-node.finished {
             opacity: 0.8;
             border-color: rgba(46, 235, 159, 0.3);
@@ -1054,8 +1072,9 @@
                 col.appendChild(rLabel);
 
                 rnd.forEach(m => {
+                    const isFinalMatch = rIdx === totalRounds - 1;
                     const mDiv = document.createElement('div');
-                    mDiv.className = `match-node ${m.state === 'active' ? 'active-match' : ''}`;
+                    mDiv.className = `match-node ${m.state === 'active' ? 'active-match' : ''} ${isFinalMatch ? 'final-match' : ''}`;
                     if (m.state === 'finished') mDiv.className += ' finished';
                     mDiv.id = m.id;
                     m.domRef = mDiv;
@@ -1071,6 +1090,7 @@
                     const c2Class = `combatant p2 ${m.winner && m.winner === actualP2 ? 'winner' : ''} ${m.winner !== null && m.winner !== actualP2 ? 'loser' : ''}`;
 
                     mDiv.innerHTML = `
+                        ${isFinalMatch ? '<h2 class="final-match-label">Final Matchup</h2>' : ''}
                         <div class="${c1Class}" data-side="p1">
                             ${p1Display}
                         </div>
